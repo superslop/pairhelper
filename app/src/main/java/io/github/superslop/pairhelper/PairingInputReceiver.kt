@@ -1,4 +1,4 @@
-package com.anyapk.installer
+package io.github.superslop.pairhelper
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -37,7 +37,7 @@ class PairingInputReceiver : BroadcastReceiver() {
             return
         }
 
-        // Validation proper lives in AdbInstaller.pair so the service can render the
+        // Validation proper lives in AdbBridge.pair so the service can render the
         // message in the notification; here we only avoid waking it for nothing.
         val forward = Intent(context, PairingInputService::class.java).apply {
             action = PairingInputService.ACTION_SUBMIT_CODE

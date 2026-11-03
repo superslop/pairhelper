@@ -21,43 +21,38 @@
             android:layout_marginBottom="32dp"
             android:lineSpacingExtra="4dp" />
 
-        <LinearLayout
+        <Button
+            android:id="@+id/actionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:id="@+id/actionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_waiting"
-                android:minWidth="200dp"
-                android:layout_marginBottom="16dp" />
-
-            <Button
-                android:id="@+id/refreshButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_refresh"
-                android:minWidth="200dp"
-                android:layout_marginBottom="16dp" />
-        </LinearLayout>
+            android:text="@string/btn_waiting"
+            android:minWidth="220dp"
+            android:layout_marginBottom="16dp" />
 
         <Button
-            android:id="@+id/testConnectionButton"
+            android:id="@+id/tcpipButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Test Connection"
-            android:minWidth="200dp"
+            android:text="@string/btn_tcpip"
+            android:minWidth="220dp"
+            android:layout_marginBottom="16dp"
             android:visibility="gone" />
 
         <Button
-            android:id="@+id/selectApkButton"
+            android:id="@+id/wirelessButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_select_apk"
-            android:minWidth="200dp"
-            android:layout_marginTop="16dp"
+            android:text="@string/btn_wireless"
+            android:minWidth="220dp"
+            android:layout_marginBottom="16dp"
             android:visibility="gone" />
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_refresh"
+            android:minWidth="220dp" />
 
     </LinearLayout>
 </ScrollView>

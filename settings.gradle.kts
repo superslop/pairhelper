@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "anyapk"
+rootProject.name = "pairhelper"
 include(":app")

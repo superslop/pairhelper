@@ -1,4 +1,4 @@
-package com.anyapk.installer
+package io.github.superslop.pairhelper
 
 import android.content.Context
 import android.net.ConnectivityManager

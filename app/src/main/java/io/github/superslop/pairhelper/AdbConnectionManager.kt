@@ -1,4 +1,4 @@
-package com.anyapk.installer
+package io.github.superslop.pairhelper
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -71,7 +71,7 @@ class AdbConnectionManager private constructor(private val context: Context) : A
             mPrivateKey = keyPair.private
 
             // Generate certificate
-            val subject = "CN=anyapk"
+            val subject = "CN=pairhelper"
             val algorithmName = "SHA512withRSA"
             val expiryDate = System.currentTimeMillis() + (365L * 24 * 60 * 60 * 1000 * 10) // 10 years
 
@@ -132,5 +132,5 @@ class AdbConnectionManager private constructor(private val context: Context) : A
 
     public override fun getCertificate(): Certificate = mCertificate!!
 
-    public override fun getDeviceName(): String = "anyapk"
+    public override fun getDeviceName(): String = "PairHelper"
 }

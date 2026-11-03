@@ -4,14 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <!--
-        Lets anyapk switch Wireless debugging back on by itself. The system will not
-        grant this at install time; anyapk grants it to itself over ADB once paired
-        (see WirelessDebugging). Harmless when it is never granted.
+        Lets PairHelper switch Wireless debugging back on by itself. The system
+        will not grant this at install time; PairHelper grants it to itself over
+        ADB once paired (see WirelessDebugging). Harmless when never granted.
     -->
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
@@ -23,8 +25,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Anyapk"
-        tools:targetApi="31">
+        android:theme="@style/Theme.PairHelper"
+        tools:targetApi="35">
 
         <activity
             android:name=".MainActivity"
@@ -36,126 +38,25 @@
             </intent-filter>
         </activity>
 
-        <!-- APK Handler Activity -->
-        <activity
-            android:name=".InstallActivity"
-            android:exported="true"
-            android:label="Install APK">
-            <intent-filter android:priority="100">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-            </intent-filter>
-            <intent-filter android:priority="100">
-                <action android:name="android.intent.action.INSTALL_PACKAGE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-            </intent-filter>
-
-            <!--
-                Split bundles and expansion files. File managers hand these over as
-                generic archives, so the file name has to do the work the MIME type
-                can't.
-
-                The repeated patterns are not a mistake: PatternMatcher's simple glob
-                matches ".*" against the first occurrence of what follows and never
-                backtracks, so ".*\\.xapk" alone misses any name containing an earlier
-                dot — which is most of them, since bundles are usually named after the
-                package. One pattern per dot in the path is the only way to cover them.
-            -->
-            <intent-filter android:priority="100">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="content" />
-                <data android:scheme="file" />
-                <data android:host="*" />
-
-                <data android:mimeType="application/octet-stream" />
-                <data android:mimeType="application/zip" />
-                <data android:mimeType="application/x-zip-compressed" />
-                <data android:mimeType="application/vnd.android.package-archive" />
-
-                <data android:pathPattern=".*\\.apks" />
-                <data android:pathPattern=".*\\..*\\.apks" />
-                <data android:pathPattern=".*\\..*\\..*\\.apks" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.apks" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.apks" />
-
-                <data android:pathPattern=".*\\.apkm" />
-                <data android:pathPattern=".*\\..*\\.apkm" />
-                <data android:pathPattern=".*\\..*\\..*\\.apkm" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.apkm" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.apkm" />
-
-                <data android:pathPattern=".*\\.xapk" />
-                <data android:pathPattern=".*\\..*\\.xapk" />
-                <data android:pathPattern=".*\\..*\\..*\\.xapk" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.xapk" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.xapk" />
-
-                <data android:pathPattern=".*\\.obb" />
-                <data android:pathPattern=".*\\..*\\.obb" />
-                <data android:pathPattern=".*\\..*\\..*\\.obb" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.obb" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.obb" />
-
-                <!-- .aab can't be installed on a device; anyapk catches it to say so. -->
-                <data android:pathPattern=".*\\.aab" />
-                <data android:pathPattern=".*\\..*\\.aab" />
-                <data android:pathPattern=".*\\..*\\..*\\.aab" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\.aab" />
-                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.aab" />
-            </intent-filter>
-        </activity>
-
-        <!-- Settings Activity -->
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="false"
-            android:label="Settings"
-            android:parentActivityName=".MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-
         <!--
-            Pairing Input Service with RemoteInput.
-
-            No android:foregroundServiceType: at targetSdk 30 the platform does not
-            require one, and the previous "shortService" value was both unenforced here
-            and missing its FOREGROUND_SERVICE_SHORT_SERVICE permission. A targetSdk
-            bump to 34+ must add both back together.
+            Pairing input foreground service. The connectedDevice type covers
+            connecting to this device's own adbd; targetSdk 34+ requires the
+            type here and FOREGROUND_SERVICE_CONNECTED_DEVICE above, together.
         -->
         <service
             android:name=".PairingInputService"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
 
         <!-- Pairing Input Receiver -->
         <receiver
             android:name=".PairingInputReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.anyapk.installer.PAIRING_INPUT" />
-                <action android:name="com.anyapk.installer.PAIRING_CANCEL" />
+                <action android:name="io.github.superslop.pairhelper.PAIRING_INPUT" />
+                <action android:name="io.github.superslop.pairhelper.PAIRING_CANCEL" />
             </intent-filter>
         </receiver>
-
-        <!-- FileProvider for sharing APK files (needed for auto-updates) -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
     </application>
 
 </manifest>

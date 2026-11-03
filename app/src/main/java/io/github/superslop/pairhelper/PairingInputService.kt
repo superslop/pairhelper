@@ -1,4 +1,4 @@
-package com.anyapk.installer
+package io.github.superslop.pairhelper
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.Build
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
@@ -65,7 +66,24 @@ class PairingInputService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        startForegroundWithType()
+    }
+
+    private fun startForegroundWithType() {
+        // targetSdk 35 requires the foreground-service type to be declared in
+        // the manifest and supplied here; connectedDevice is the type that
+        // covers talking to this device's own adbd.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            )
+        } else {
+            // Pre-34 the type is not enforced; passing 0 defers to the manifest.
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), 0)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -73,7 +91,7 @@ class PairingInputService : Service() {
 
         // Re-asserted on every start so a delivery via startForegroundService always
         // satisfies the five-second startForeground contract, whichever path got here.
-        startForeground(NOTIFICATION_ID, buildNotification())
+        startForegroundWithType()
         startDiscovery()
 
         if (intent?.action == ACTION_SUBMIT_CODE) {
@@ -117,7 +135,7 @@ class PairingInputService : Service() {
             return
         }
 
-        // The attempt is time-boxed by AdbInstaller.pair, so the idle timer would only
+        // The attempt is time-boxed by AdbBridge.pair, so the idle timer would only
         // race it. It is restarted below if the attempt fails.
         idleTimeoutJob?.cancel()
         state = State.PAIRING
@@ -129,12 +147,12 @@ class PairingInputService : Service() {
             // recent discovery in case the extras went stale.
             val effectivePort = if (port > 0) port else pairingPort
 
-            AdbInstaller.pair(this@PairingInputService, code, effectivePort)
+            AdbBridge.pair(this@PairingInputService, code, effectivePort)
                 .onSuccess {
                     SettingsManager.setHasPairedBefore(this@PairingInputService)
                     showResultNotification(
                         title = "Pairing successful",
-                        text = "Tap to return to anyapk",
+                        text = "Tap to return to PairHelper",
                         icon = android.R.drawable.ic_dialog_info,
                         tappable = true
                     )
@@ -361,9 +379,9 @@ class PairingInputService : Service() {
         const val NOTIFICATION_ID = 3001
         const val RESULT_NOTIFICATION_ID = 3003
         const val KEY_PAIRING_INPUT = "pairing_input"
-        const val ACTION_PAIRING_INPUT = "com.anyapk.installer.PAIRING_INPUT"
-        const val ACTION_PAIRING_CANCEL = "com.anyapk.installer.PAIRING_CANCEL"
-        const val ACTION_SUBMIT_CODE = "com.anyapk.installer.SUBMIT_PAIRING_CODE"
+        const val ACTION_PAIRING_INPUT = "io.github.superslop.pairhelper.PAIRING_INPUT"
+        const val ACTION_PAIRING_CANCEL = "io.github.superslop.pairhelper.PAIRING_CANCEL"
+        const val ACTION_SUBMIT_CODE = "io.github.superslop.pairhelper.SUBMIT_PAIRING_CODE"
         const val EXTRA_CODE = "pairing_code"
         const val EXTRA_PORT = "PORT_EXTRA"
     }

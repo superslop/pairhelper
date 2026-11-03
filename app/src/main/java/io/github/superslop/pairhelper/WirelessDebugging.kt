@@ -1,4 +1,4 @@
-package com.anyapk.installer
+package io.github.superslop.pairhelper
 
 import android.Manifest
 import android.content.Context
@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
  *
  * Flipping it needs WRITE_SECURE_SETTINGS, which no ordinary app can hold. The
  * permission is declared `development`, though, which means the shell user can grant
- * it — and once anyapk is paired it has a shell. So the app grants the permission to
+ * it — and once PairHelper is paired it has a shell. So the app grants the permission to
  * itself during a connected session, and from then on it can turn wireless debugging
  * back on by itself after a reboot or a network change.
  *
@@ -41,7 +41,7 @@ object WirelessDebugging {
         }
     }
 
-    /** Whether anyapk currently holds the permission needed to toggle the setting. */
+    /** Whether PairHelper currently holds the permission needed to toggle the setting. */
     fun canToggle(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
@@ -82,7 +82,7 @@ object WirelessDebugging {
     }
 
     /**
-     * Asks the device — over anyapk's own ADB connection — to grant anyapk the permission
+     * Asks the device — over PairHelper's own ADB connection — to grant PairHelper the permission
      * that lets it toggle wireless debugging later. Requires a working connection now.
      *
      * @return whether the permission is held afterwards
@@ -91,7 +91,7 @@ object WirelessDebugging {
         if (canToggle(context)) return true
 
         val command = "pm grant ${context.packageName} ${Manifest.permission.WRITE_SECURE_SETTINGS}"
-        AdbInstaller.runShellCommand(context, command)
+        AdbBridge.runShellCommand(context, command)
             .onSuccess { output ->
                 if (output.isNotEmpty()) Log.d(TAG, "pm grant said: $output")
             }
