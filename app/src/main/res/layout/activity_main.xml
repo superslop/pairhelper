@@ -39,6 +39,15 @@
             android:visibility="gone" />
 
         <Button
+            android:id="@+id/copyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_copy_termux"
+            android:minWidth="220dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/wirelessButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

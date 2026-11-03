@@ -1,6 +1,8 @@
 package io.github.superslop.pairhelper
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var refreshButton: Button
     private lateinit var tcpipButton: Button
     private lateinit var wirelessButton: Button
+    private lateinit var copyButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,10 +45,12 @@ class MainActivity : AppCompatActivity() {
         refreshButton = findViewById(R.id.refreshButton)
         tcpipButton = findViewById(R.id.tcpipButton)
         wirelessButton = findViewById(R.id.wirelessButton)
+        copyButton = findViewById(R.id.copyButton)
 
         refreshButton.setOnClickListener { checkStatus() }
         tcpipButton.setOnClickListener { enableTcpip5555() }
         wirelessButton.setOnClickListener { enableWirelessDebugging() }
+        copyButton.setOnClickListener { copyTermuxCommand() }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -104,11 +109,13 @@ class MainActivity : AppCompatActivity() {
             append("For Termux / proot, tap \"Enable ADB on port 5555\" below, ")
             append("then in Termux run:\n\n")
             append("adb connect 127.0.0.1:5555\n\n")
+            append("Use \"Copy Termux Command\" below to put it on the clipboard.\n\n")
             append("No pairing code is needed again until this app's key is revoked.")
         }
         actionButton.isEnabled = false
         actionButton.text = getString(R.string.btn_connected)
         tcpipButton.visibility = Button.VISIBLE
+        copyButton.visibility = Button.VISIBLE
         wirelessButton.visibility = Button.GONE
         refreshButton.visibility = Button.VISIBLE
     }
@@ -160,6 +167,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         tcpipButton.visibility = Button.GONE
+        copyButton.visibility = Button.GONE
         wirelessButton.visibility = Button.GONE
 
         when {
@@ -226,19 +234,34 @@ class MainActivity : AppCompatActivity() {
             tcpipButton.isEnabled = true
             tcpipButton.text = getString(R.string.btn_tcpip)
             result.onSuccess {
+                copyTermuxCommand(showToast = false)
                 statusText.text = buildString {
                     append("✅ adbd is now listening on plain TCP port 5555.\n\n")
-                    append("In Termux / proot:\n\nadb connect 127.0.0.1:5555\n\n")
+                    append("The Termux command is already on your clipboard — ")
+                    append("switch to Termux and paste:\n\nadb connect 127.0.0.1:5555\n\n")
                     append("⚠️ Plain-TCP adbd is unauthenticated: any device on the ")
                     append("same network that can reach port 5555 gets a shell. ")
                     append("Use it on your own hotspot / offline LAN, and reboot ")
                     append("or turn Wireless debugging off to close it.")
                 }
-                Toast.makeText(this@MainActivity, "Port 5555 is up", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Port 5555 is up — Termux command copied", Toast.LENGTH_LONG).show()
             }
             result.onFailure { error ->
                 Toast.makeText(this@MainActivity, "❌ ${error.message}", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    /**
+     * Copies the one Termux-side step to the clipboard, so the flow is:
+     * tap Enable 5555 here (which auto-copies), switch to Termux, paste, Enter.
+     * The `adb devices` half confirms the connection in the same paste.
+     */
+    private fun copyTermuxCommand(showToast: Boolean = true) {
+        val clipboard = getSystemService(ClipboardManager::class.java)
+        clipboard.setPrimaryClip(ClipData.newPlainText("PairHelper Termux command", TERMUX_COMMAND))
+        if (showToast) {
+            Toast.makeText(this, "Copied — paste it in Termux", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -318,6 +341,8 @@ class MainActivity : AppCompatActivity() {
         const val EXTRA_FROM_PAIRING = "io.github.superslop.pairhelper.FROM_PAIRING"
 
         private const val REQUEST_POST_NOTIFICATIONS = 1001
+
+        const val TERMUX_COMMAND = "adb connect 127.0.0.1:5555 && adb devices"
 
         // Only try the self-grant once per session.
         private var permissionGrantAttempted = false

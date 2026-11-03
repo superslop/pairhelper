@@ -7,4 +7,5 @@
     <string name="btn_refresh">Refresh</string>
     <string name="btn_tcpip">Enable ADB on port 5555</string>
     <string name="btn_wireless">Enable Wireless Debugging</string>
+    <string name="btn_copy_termux">Copy Termux Command</string>
 </resources>

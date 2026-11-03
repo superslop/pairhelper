@@ -13,8 +13,10 @@ PairHelper fixes the input problem the way Shizuku does: it posts a notification
 3. **Bridge to Termux / proot on port 5555.** One tap runs the on-device equivalent of `adb tcpip 5555` (`setprop service.adb.tcp.port 5555; stop adbd; start adbd`) over the authorised connection and verifies that port 5555 answers. Termux then only needs:
 
    ```
-   adb connect 127.0.0.1:5555
+   adb connect 127.0.0.1:5555 && adb devices
    ```
+
+   PairHelper puts exactly that line on the clipboard automatically when port 5555 comes up (and via the *Copy Termux Command* button at any time while connected), so the Termux side is one paste.
 
    No pairing, no authorisation prompt — plain-TCP adbd is unauthenticated.
 
@@ -40,7 +42,7 @@ Toolchain: Kotlin 2.0.21, AGP 8.7.3, Gradle 8.9, JDK 17, version catalog in `gra
 
 ## Status
 
-v0.1.0. The pairing, mDNS discovery, notification-input and wireless-debugging self-grant code is carried over from the upstream fork base and is field-proven there; the PairHelper-specific parts (rebrand, targetSdk 35 foreground-service typing, the 5555 bridge) are CI-built but **not yet device-verified** on a physical device. The 5555 bridge in particular depends on the shell user being allowed the `setprop`/`stop adbd` sequence on a given build; if it fails, the app reports that port 5555 did not come up instead of claiming success.
+v0.1.1. The pairing, mDNS discovery, notification-input and wireless-debugging self-grant code is carried over from the upstream fork base and is field-proven there; the PairHelper-specific parts (rebrand, targetSdk 35 foreground-service typing, the 5555 bridge) are CI-built but **not yet device-verified** on a physical device. The 5555 bridge in particular depends on the shell user being allowed the `setprop`/`stop adbd` sequence on a given build; if it fails, the app reports that port 5555 did not come up instead of claiming success.
 
 ## Origin and licence
 
